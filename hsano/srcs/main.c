@@ -306,7 +306,6 @@ int	main(int argc, char **argv)
     (void)argv;
     (void)argc;
 
-    /*
     char *path1 = "./MFA/blue.mfa";
     char *path2 = "./MFA/brown.mfa";
     char *path3 = "./MFA/gray.mfa";
@@ -315,7 +314,6 @@ int	main(int argc, char **argv)
     char *path6 = "./MFA/white2.mfa";
     char *path7 = "./MFA/white3.mfa";
     char *path8 = "./MFA/white4.mfa";
-    */
     char *path9 = "./MFA/white5.mfa";
     //char *path = path9;
 
@@ -385,7 +383,6 @@ int	main(int argc, char **argv)
     }
     */
 
-    /*
     int fds[10];
     fds[0] = drawThumbnail(path1,&mfa);
     fds[1] = drawThumbnail(path2,&mfa);
@@ -396,11 +393,9 @@ int	main(int argc, char **argv)
     fds[6] = drawThumbnail(path7,&mfa);
     fds[7] = drawThumbnail(path8,&mfa);
     fds[8] = drawThumbnail(path9,&mfa);
-    //test1(fds);
-    */
-    int fd = drawThumbnail(path9,&mfa);
+    test1(fds);
 
-    drawIcon(fd, &mfa);
+    drawIcon(fds[8], &mfa);
 
 
     t_mfa_img img_info;
@@ -410,9 +405,7 @@ int	main(int argc, char **argv)
     img_info.reverse = false;
     img_info.rgb = 24;
 
-    char tmp_read[50];
-    read(fd, tmp_read, 38);
-    unsigned char *raw_img = get_image(fd, &img_info);
+    unsigned char *raw_img = get_image(fds[8], &img_info);
     //read(fds[8], tmp_read, 4);
     //raw_img = get_image(fds[8], &img_info);
     //raw_img = get_image(fds[8], &img_info);
