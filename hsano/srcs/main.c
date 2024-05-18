@@ -45,13 +45,15 @@ void mapping(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x
     for(int y=0;y<y_len;y++){
         for(int x=0;x<x_len;x++){
             unsigned char R = (raw_img[i+1] & 0xF8);
-            unsigned char G = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 3);
+            unsigned char G = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
             unsigned char B = (raw_img[i] & 0x1F) << 3;
 
 
-            //unsigned char G = ((raw_img[i] & 0xFC)); //6
-            //unsigned char R = ((raw_img[i] & 0x03) << 6) + ((raw_img[i+1] & 0xE0) >> 3);
-            //unsigned char B = (raw_img[i] & 0x1F) << 3;
+            /*
+            unsigned char G = (raw_img[i+1] & 0xF8);
+            unsigned char B = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
+            unsigned char R = (raw_img[i] & 0x1F) << 3;
+            */
             //if(y % 16 <= 2){
                 //R = 255;
                 //G = 0;
@@ -75,6 +77,112 @@ void mapping(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x
 								image.img, win_x, win_y);
 }
 
+void mapping2(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x, int win_y, bool reverse, t_mfa_img *img_info)
+{
+
+    (void)reverse;
+    (void)img_info;
+    t_image image = {0};
+	image.img = (void *)mlx_new_image(mfa->mlx, x_len, y_len);
+	image.addr = mlx_get_data_addr(image.img, \
+			&image.bpp, &image.sl, &image.endian);
+
+    int i = 0;
+    for(int y=0;y<y_len;y++){
+        for(int x=0;x<x_len;x++){
+            unsigned char R = raw_img[i+2];
+            unsigned char G = raw_img[i+1];
+            unsigned char B = raw_img[i];
+            unsigned int tmp_color = (R << 16) + (G << 8) + B;
+
+            unsigned int *dst_ptr = image.addr + image.sl * (y);
+            dst_ptr[x] = tmp_color;
+
+            i += 3;
+        }
+    }
+     
+	mlx_put_image_to_window(mfa->mlx, mfa->window, \
+								image.img, win_x, win_y);
+}
+
+void mapping3(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x, int win_y, bool reverse, t_mfa_img *img_info)
+{
+    (void)img_info;
+
+    int size = img_info->size;
+    printf("size=%d\n", img_info->size);
+    printf("raw_img[0]=%x\n", raw_img[0]);
+    printf("raw_img[1]=%x\n", raw_img[1]);
+    printf("raw_img[2]=%x\n", raw_img[2]);
+    printf("raw_img[3]=%x\n", raw_img[3]);
+    printf("raw_img[4]=%x\n", raw_img[4]);
+    printf("raw_img[5]=%x\n", raw_img[5]);
+    printf("raw_img[6]=%x\n", raw_img[6]);
+    printf("raw_img[7]=%x\n", raw_img[7]);
+    printf("raw_img[8]=%x\n", raw_img[8]);
+    printf("raw_img[9]=%x\n", raw_img[9]);
+    printf("raw_img[10]=%x\n", raw_img[10]);
+    printf("raw_img[11]=%x\n", raw_img[11]);
+    printf("raw_img[12]=%x\n", raw_img[12]);
+    printf("raw_img[13]=%x\n", raw_img[13]);
+    printf("raw_img[14]=%x\n", raw_img[14]);
+    printf("raw_img[15]=%x\n", raw_img[15]);
+    printf("raw_img[16]=%x\n", raw_img[16]);
+
+    //int size = mfa.height;
+    printf("raw_img[-4]=%x\n", raw_img[size-4]);
+    printf("raw_img[-3]=%x\n", raw_img[size-3]);
+    printf("raw_img[-2]=%x\n", raw_img[size-2]);
+    printf("raw_img[-1]=%x\n", raw_img[size-1]);
+    t_image image = {0};
+	image.img = (void *)mlx_new_image(mfa->mlx, x_len, y_len);
+	image.addr = mlx_get_data_addr(image.img, \
+			&image.bpp, &image.sl, &image.endian);
+
+    int i = 0;
+    for(int y=0;y<y_len;y++){
+        for(int x=0;x<x_len;x++){
+            //unsigned char R = (raw_img[i+1] & 0xF8);
+            //unsigned char G = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
+            //unsigned char B = (raw_img[i] & 0x1F) << 3;
+
+            unsigned char R = (raw_img[i+1] & 0xF8) << 1;
+            unsigned char G = ((raw_img[i+1] & 0x03) << 6) + ((raw_img[i] & 0xE0) >> 5);
+            unsigned char B = (raw_img[i] & 0x1F) << 3;
+            if(i <= 5){
+                printf("R=%u, G=%u, B=%u\n", R, G, B);
+
+            }
+
+
+            /*
+            unsigned char G = (raw_img[i+1] & 0xF8);
+            unsigned char B = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
+            unsigned char R = (raw_img[i] & 0x1F) << 3;
+            */
+            //if(y % 16 <= 2){
+                //R = 255;
+                //G = 0;
+                //B = 0;
+            //}
+            unsigned int tmp_color = (R << 16) + (G << 8) + B;
+
+            if(reverse){
+                unsigned int *dst_ptr = image.addr + image.sl * (y_len - y -1);
+                dst_ptr[x] = tmp_color;
+            }else{
+                unsigned int *dst_ptr = image.addr + image.sl * (y);
+                dst_ptr[x] = tmp_color;
+            }
+
+            i += 2;
+        }
+    }
+     
+	mlx_put_image_to_window(mfa->mlx, mfa->window, \
+								image.img, win_x, win_y);
+}
 
 int drawThumbnail(char *path, t_mfa *mfa)
 {
@@ -134,10 +242,32 @@ void drawIcon(int fd, t_mfa *mfa)
     img_info.reverse = false;
     img_info.rgb = 24;
 
-    char tmp_read[50];
-    read(fd, tmp_read, 38);
+
+    char tmp_read[1200];
+    read(fd, tmp_read, 530*2 + 38);
     unsigned char *raw_img = get_image(fd, &img_info);
-    mapping(raw_img, mfa, 48,   48, 100 ,0, false, &img_info);
+    mapping(raw_img, mfa, 48,   48, 80 ,0, false, &img_info);
+
+}
+
+void drawIconInGreen(int fd, t_mfa *mfa)
+{
+    t_mfa_img img_info;
+    img_info.width= 300;
+    img_info.height= 300;
+    img_info.size = img_info.width * img_info.height;
+    img_info.reverse = false;
+    img_info.rgb = 24;
+
+
+    char tmp_read[1200];
+    read(fd, tmp_read,  0);
+    unsigned char *raw_img = get_image(fd, &img_info);
+    mapping(raw_img, mfa, 16,   280, 80 ,0, false, &img_info);
+    mapping(raw_img, mfa, 32,   280, 100 ,0, false, &img_info);
+    mapping(raw_img, mfa, 48,   280, 200 ,0, false, &img_info);
+    mapping(raw_img, mfa, 112,   280, 400 ,0, false, &img_info);
+    mapping(raw_img, mfa, 240,   280, 540 ,0, false, &img_info);
 
 }
 
@@ -270,35 +400,6 @@ int	close_mfa(t_mfa *mfa)
 
 
 
-//void mapping2(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x, int win_y)
-void mapping2(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x, int win_y, bool reverse, t_mfa_img *img_info)
-{
-
-    (void)reverse;
-    (void)img_info;
-    t_image image = {0};
-	image.img = (void *)mlx_new_image(mfa->mlx, x_len, y_len);
-	image.addr = mlx_get_data_addr(image.img, \
-			&image.bpp, &image.sl, &image.endian);
-
-    int i = 0;
-    for(int y=0;y<y_len;y++){
-        for(int x=0;x<x_len;x++){
-            unsigned char G = raw_img[i+2];
-            unsigned char B = raw_img[i+1];
-            unsigned char R = raw_img[i];
-            unsigned int tmp_color = (R << 16) + (G << 8) + B;
-
-            unsigned int *dst_ptr = image.addr + image.sl * (y);
-            dst_ptr[x] = tmp_color;
-
-            i += 3;
-        }
-    }
-     
-	mlx_put_image_to_window(mfa->mlx, mfa->window, \
-								image.img, win_x, win_y);
-}
 
 
 int	main(int argc, char **argv)
@@ -306,6 +407,7 @@ int	main(int argc, char **argv)
     (void)argv;
     (void)argc;
 
+    /*
     char *path1 = "./MFA/blue.mfa";
     char *path2 = "./MFA/brown.mfa";
     char *path3 = "./MFA/gray.mfa";
@@ -315,6 +417,12 @@ int	main(int argc, char **argv)
     char *path7 = "./MFA/white3.mfa";
     char *path8 = "./MFA/white4.mfa";
     char *path9 = "./MFA/white5.mfa";
+    */
+    //char *path3 = "./MFA/gray.mfa";
+    char *path4 = "./MFA/green.mfa";
+    char *path9 = "./MFA/white5.mfa";
+    //char *path7 = "./MFA/green.mfa";
+    char *path = path4;
     //char *path = path9;
 
 
@@ -383,6 +491,7 @@ int	main(int argc, char **argv)
     }
     */
 
+    /*
     int fds[10];
     fds[0] = drawThumbnail(path1,&mfa);
     fds[1] = drawThumbnail(path2,&mfa);
@@ -394,8 +503,26 @@ int	main(int argc, char **argv)
     fds[7] = drawThumbnail(path8,&mfa);
     fds[8] = drawThumbnail(path9,&mfa);
     test1(fds);
+    */
 
-    drawIcon(fds[8], &mfa);
+    int fd = drawThumbnail(path,&mfa);
+    drawIcon(fd, &mfa);
+    //drawIconInGreen(fd, &mfa);
+
+    /*
+    t_mfa_img img_info;
+    img_info.width= 48;
+    img_info.height= 96;
+    img_info.size = img_info.width * img_info.height;
+    img_info.reverse = false;
+    img_info.rgb = 24;
+
+
+    char tmp_read[50];
+    read(fds[8], tmp_read, 38);
+    unsigned char *raw_img = get_image(fds[8], &img_info);
+    mapping(raw_img, &mfa, 48,   48, 100 ,0, false, &img_info);
+    */
 
 
     t_mfa_img img_info;
@@ -405,8 +532,22 @@ int	main(int argc, char **argv)
     img_info.reverse = false;
     img_info.rgb = 24;
 
-    unsigned char *raw_img = get_image(fds[8], &img_info);
-    //read(fds[8], tmp_read, 4);
+    unsigned char *raw_img = get_image(fd, &img_info);
+
+
+    int fd9 = open(path9 , O_RDONLY);
+
+    int tmp_size = 134210+6+100;
+    char tmp[tmp_size];
+    read(fd9, tmp, tmp_size);
+
+    img_info.width= 39*3;
+    img_info.height= 280;
+    img_info.size = img_info.width * img_info.height;
+    img_info.reverse = false;
+    img_info.rgb = 24;
+    unsigned char *raw_img2 = get_image(fd9, &img_info);
+
     //raw_img = get_image(fds[8], &img_info);
     //raw_img = get_image(fds[8], &img_info);
     //raw_img = get_image(fds[8], &img_info);
@@ -476,8 +617,18 @@ int	main(int argc, char **argv)
     //todo will remove
 
     //int len = i/2;
+    //
     /*
-    int start_b = start_binary(init_b, len, path);
+    unsigned int init_b[1000] = {0};
+    init_b[0]=0x27;
+    init_b[1]=0x00;
+    init_b[2]=0x78;
+    init_b[3]=0x00;
+    init_b[4]=0x06;
+    init_b[5]=0x10;
+    init_b[6]=0x00;
+    init_b[7]=0x00;
+    int start_b = start_binary(init_b, len, path9);
     printf("start_b=%d\n", start_b);
     int id_len = start_b - len - 16;
     printf("id_len=%d\n", id_len);
@@ -489,12 +640,17 @@ int	main(int argc, char **argv)
     //mapping(raw_img, &mfa, 32,   256, 100 ,0);
     //mapping(raw_img, &mfa, 64,   256, 200 ,0);
 
+    /*
     mapping(raw_img, &mfa, 18,   256, 0   ,100, false, &img_info);
     mapping(raw_img, &mfa, 24,   256, 100 ,100, false, &img_info);
     mapping(raw_img, &mfa, 39,   256, 200 ,100, false, &img_info);
     mapping(raw_img, &mfa, 48,   256, 300 ,100, false, &img_info);
     mapping(raw_img, &mfa, 96,   256, 400 ,100, false, &img_info);
     mapping(raw_img, &mfa, 128,  256, 500 ,100, false, &img_info);
+    */
+    mapping(raw_img, &mfa, 1,  2, 500 ,100, false, &img_info);
+
+    mapping3(raw_img2, &mfa, 39,  260, 300 ,0, false, &img_info);
 
     //mapping(raw_img, &mfa, 128,  256, 300 ,0);
     //mapping(raw_img, &mfa, 128, 256, 200 ,0);
