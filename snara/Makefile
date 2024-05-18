@@ -6,16 +6,18 @@ OBJS = $(SRCS:.c=.o)
 
 ifeq ($(shell uname), Darwin)
 MLXPATH = ./minilibx_opengl
-LDFLAGS =  -L$(MLXPATH) -lmlx -framework OpenGL -framework AppKit
+#LDFLAGS = -L$(MLXPATH) -lmlx -framework OpenGL -framework AppKit -lz
+LDFLAGS = $(MLXPATH)/*.o -framework OpenGL -framework AppKit -lz
 else
 MLXPATH = ./minilibx-linux
-LDFLAGS = x -L$(MLXPATH) -lmlx -I/usr/X11/include -L/usr/X11/lib -lX11 -lXext -lm -lbsd
+#LDFLAGS = -L$(MLXPATH) -lmlx -I/usr/X11/include -L/usr/X11/lib -lX11 -lXext -lm -lbsd
+LDFLAGS = $(MLXPATH)/*.o -L/usr/X11/lib -lX11 -lXext -lm -lbsd
 endif
 
 
 $(NAME): $(OBJS)
 	make -C $(MLXPATH)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@ 
 
 all: $(NAME)
 

@@ -104,7 +104,7 @@ int	main(int ac, char *arg[])
 
 	{
 		t_mlx	mlx = {};
-		mlx.size = (t_point){64, 1024};
+		mlx.size = (t_point){256, 1024};
 		mlx.mlx = or_exit(mlx_init(), "mlx_init");
 		mlx.win = or_exit(mlx_new_window(mlx.mlx, mlx.size.x, mlx.size.y, arg[1]), "mlx_new_window");
 		mlx.img = or_exit(mlx_new_image(mlx.mlx, mlx.size.x, mlx.size.y), "mlx_new_image");
@@ -128,14 +128,17 @@ int	draw(t_mlx *mlx)
 				mlx->addr[i+i/3+4] = g_data[i];
 			}
 		}
-#elif 1
+#endif
+#if 1
 		for (size_t i=0; i<(size_t)mlx->size.y*(size_t)mlx->size.x; i+=3)
 		{
 			mlx->addr[i+i/3+0] = g_data[i+0];
 			mlx->addr[i+i/3+1] = g_data[i+1];
 			mlx->addr[i+i/3+2] = g_data[i+2];
 		}
-#else
+		mlx_put_image_to_window(mlx->mlx, mlx->win, mlx->img, 0, 0);
+#endif
+#if 1
 		for (size_t i=0; i<(size_t)mlx->size.y*(size_t)mlx->size.x; i+=2)
 		{
 			uint16_t	color = g_data[i+0]<<8 | g_data[i+1];
@@ -143,8 +146,8 @@ int	draw(t_mlx *mlx)
 			mlx->addr[i+i/3+1] = (color>>5 & 0x1f)*8;
 			mlx->addr[i+i/3+2] = (color>>0 & 0x1f)*8;
 		}
+		mlx_put_image_to_window(mlx->mlx, mlx->win, mlx->img, 0, mlx->size.y);
 #endif
-		mlx_put_image_to_window(mlx->mlx, mlx->win, mlx->img, 0, 0);
 	return (0);
 }
 
