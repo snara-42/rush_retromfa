@@ -1,14 +1,10 @@
 NAME 	:= retromfa
-LIB	:= ./lib/
+LIB	:= ../
 OBJDIR	:= ./obj
 
 LIBMLXDIR	:= $(LIB)/minilibx-linux
-LIBMLXTAR	:= $(LIB)/minilibx-linux.tgz
+#LIBMLXTAR	:= $(LIB)/minilibx-linux.tgz
 LIBMLX		:= $(LIBMLXDIR)/libmlx.a
-
-LIBFTDIR	:= $(LIB)/libft
-LIBFTNAME	:= libft.a
-LIBFT		:= $(LIBFTDIR)/$(LIBFTNAME)
 
 SRCDIR	:= ./srcs/
 SRC	:= main.c header.c utility.c image.c
@@ -18,23 +14,23 @@ OBJS	:= $(SRCS:.c=.o)
 OBJECTS	:= $(addprefix $(OBJDIR)/, $(SRC:.c=.o))
 DEPS	:= $(OBJECTS:.o=.d)
 ifeq ($(shell uname),Darwin)
-INCS	:= ./include $(LIBFTDIR)/include $(LIBMLXDIR) /opt/X11/include
+INCS	:= ./include $(LIBMLXDIR) /opt/X11/include
 else
-INCS	:= ./include $(LIBFTDIR)/include $(LIBMLXDIR)
+INCS	:= ./include $(LIBMLXDIR)
 endif
 
 LIBDIRS	:= $(LIBFTDIR) $(LIBMLXDIR) 
 IFLAGS	:= $(addprefix -I,$(INCS))
 LFLAGS	:= $(addprefix -L,$(LIBDIRS))
-LIBS	:= $(LIBFT) $(LIBMLX)
+LIBS	:= $(LIBMLX)
 
 CC	:= cc
 CFLAGS	:= -Wall -Wextra -Werror
 ifeq ($(shell uname),Darwin)
-LDFLAGS := $(IFLAGS) -L$(LIBFTDIR) -lft -lm -L/usr/X11R6/lib -lmlx -lXext -framework OpenGL -framework AppKit
+LDFLAGS := $(IFLAGS)   -lm -L/usr/X11R6/lib -lmlx -lXext -framework OpenGL -framework AppKit
 else
-LDFLAGS := $(IFLAGS) $(LFLAGS) -lft -lm -lmlx -lX11 -lXext
-#LDFLAGS := $(IFLAGS) $(LFLAGS) -lft -lm -lmlx -lX11 -lXext -fsanitize=address  -fsanitize=undefined -fsanitize=leak -g3
+LDFLAGS := $(IFLAGS) $(LFLAGS)  -lm -lmlx -lX11 -lXext
+#LDFLAGS := $(IFLAGS) $(LFLAGS)  -lm -lmlx -lX11 -lXext -fsanitize=address  -fsanitize=undefined -fsanitize=leak -g3
 
 endif
 
@@ -44,7 +40,6 @@ endif
 
 all:	$(LIBMLX)	
 	echo $(DELENTRY)
-	@make -C $(LIBFTDIR)
 	@make -C $(LIBMLXDIR)
 	@make $(NAME)	
 
@@ -59,14 +54,13 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $(IFLAGS) $(BONUS_FLAG) $(DFLAGS) -c $< -MMD -MP -MF   $(OBJDIR)/$*.d  -o $@
 
 $(LIBMLX) :
-	tar zxvf $(LIBMLXTAR) -C $(LIB)
+	@make -C $(LIBMLXDIR)
 
 clean	:
 			$(RM) $(OBJECTS)
 			$(RM) $(DEPS)
 			$(RM) $(DELENTRY:.c=.o)
 			$(RM) $(DELENTRY:.c=.d)
-			@make clean -C $(LIBFTDIR)
 			@make clean -C $(LIBMLXDIR)
 
 fclean	:	clean
