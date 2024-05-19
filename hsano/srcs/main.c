@@ -20,256 +20,7 @@
 #define ON_DESTROY (17)
 
 
-void mapping(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x, int win_y, bool reverse, t_mfa_img *img_info)
-{
-    (void)img_info;
 
-    int size = img_info->size;
-    printf("size=%d\n", img_info->size);
-    printf("raw_img[0]=%x\n", raw_img[0]);
-    printf("raw_img[1]=%x\n", raw_img[1]);
-    printf("raw_img[2]=%x\n", raw_img[2]);
-    printf("raw_img[3]=%x\n", raw_img[3]);
-
-    //int size = mfa.height;
-    printf("raw_img[-4]=%x\n", raw_img[size-4]);
-    printf("raw_img[-3]=%x\n", raw_img[size-3]);
-    printf("raw_img[-2]=%x\n", raw_img[size-2]);
-    printf("raw_img[-1]=%x\n", raw_img[size-1]);
-    t_image image = {0};
-	image.img = (void *)mlx_new_image(mfa->mlx, x_len, y_len);
-	image.addr = mlx_get_data_addr(image.img, \
-			&image.bpp, &image.sl, &image.endian);
-
-    int i = 0;
-    for(int y=0;y<y_len;y++){
-        for(int x=0;x<x_len;x++){
-            unsigned char R = (raw_img[i+1] & 0xF8);
-            unsigned char G = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
-            unsigned char B = (raw_img[i] & 0x1F) << 3;
-
-
-            /*
-            unsigned char G = (raw_img[i+1] & 0xF8);
-            unsigned char B = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
-            unsigned char R = (raw_img[i] & 0x1F) << 3;
-            */
-            //if(y % 16 <= 2){
-                //R = 255;
-                //G = 0;
-                //B = 0;
-            //}
-            unsigned int tmp_color = (R << 16) + (G << 8) + B;
-
-            if(reverse){
-                unsigned int *dst_ptr = image.addr + image.sl * (y_len - y -1);
-                dst_ptr[x] = tmp_color;
-            }else{
-                unsigned int *dst_ptr = image.addr + image.sl * (y);
-                dst_ptr[x] = tmp_color;
-            }
-
-            i += 2;
-        }
-    }
-     
-	mlx_put_image_to_window(mfa->mlx, mfa->window, \
-								image.img, win_x, win_y);
-}
-
-void mapping2(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x, int win_y, bool reverse, t_mfa_img *img_info)
-{
-
-    (void)reverse;
-    (void)img_info;
-    t_image image = {0};
-	image.img = (void *)mlx_new_image(mfa->mlx, x_len, y_len);
-	image.addr = mlx_get_data_addr(image.img, \
-			&image.bpp, &image.sl, &image.endian);
-
-    int i = 0;
-    for(int y=0;y<y_len;y++){
-        for(int x=0;x<x_len;x++){
-            unsigned char R = raw_img[i+2];
-            unsigned char G = raw_img[i+1];
-            unsigned char B = raw_img[i];
-            unsigned int tmp_color = (R << 16) + (G << 8) + B;
-
-            unsigned int *dst_ptr = image.addr + image.sl * (y);
-            dst_ptr[x] = tmp_color;
-
-            i += 3;
-        }
-    }
-     
-	mlx_put_image_to_window(mfa->mlx, mfa->window, \
-								image.img, win_x, win_y);
-}
-
-void mapping3(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x, int win_y, bool reverse, t_mfa_img *img_info)
-{
-    (void)img_info;
-
-    int size = img_info->size;
-    printf("size=%d\n", img_info->size);
-    printf("raw_img[0]=%x\n", raw_img[0]);
-    printf("raw_img[1]=%x\n", raw_img[1]);
-    printf("raw_img[2]=%x\n", raw_img[2]);
-    printf("raw_img[3]=%x\n", raw_img[3]);
-    printf("raw_img[4]=%x\n", raw_img[4]);
-    printf("raw_img[5]=%x\n", raw_img[5]);
-    printf("raw_img[6]=%x\n", raw_img[6]);
-    printf("raw_img[7]=%x\n", raw_img[7]);
-    printf("raw_img[8]=%x\n", raw_img[8]);
-    printf("raw_img[9]=%x\n", raw_img[9]);
-    printf("raw_img[10]=%x\n", raw_img[10]);
-    printf("raw_img[11]=%x\n", raw_img[11]);
-    printf("raw_img[12]=%x\n", raw_img[12]);
-    printf("raw_img[13]=%x\n", raw_img[13]);
-    printf("raw_img[14]=%x\n", raw_img[14]);
-    printf("raw_img[15]=%x\n", raw_img[15]);
-    printf("raw_img[16]=%x\n", raw_img[16]);
-
-    //int size = mfa.height;
-    printf("raw_img[-4]=%x\n", raw_img[size-4]);
-    printf("raw_img[-3]=%x\n", raw_img[size-3]);
-    printf("raw_img[-2]=%x\n", raw_img[size-2]);
-    printf("raw_img[-1]=%x\n", raw_img[size-1]);
-    t_image image = {0};
-	image.img = (void *)mlx_new_image(mfa->mlx, x_len, y_len);
-	image.addr = mlx_get_data_addr(image.img, \
-			&image.bpp, &image.sl, &image.endian);
-
-    int i = 0;
-    for(int y=0;y<y_len;y++){
-        for(int x=0;x<x_len;x++){
-            //unsigned char R = (raw_img[i+1] & 0xF8);
-            //unsigned char G = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
-            //unsigned char B = (raw_img[i] & 0x1F) << 3;
-
-            unsigned char R = (raw_img[i+1] & 0xF8) << 1;
-            unsigned char G = ((raw_img[i+1] & 0x03) << 6) + ((raw_img[i] & 0xE0) >> 5);
-            unsigned char B = (raw_img[i] & 0x1F) << 3;
-            if(i <= 5){
-                printf("R=%u, G=%u, B=%u\n", R, G, B);
-
-            }
-
-
-            /*
-            unsigned char G = (raw_img[i+1] & 0xF8);
-            unsigned char B = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
-            unsigned char R = (raw_img[i] & 0x1F) << 3;
-            */
-            //if(y % 16 <= 2){
-                //R = 255;
-                //G = 0;
-                //B = 0;
-            //}
-            unsigned int tmp_color = (R << 16) + (G << 8) + B;
-
-            if(reverse){
-                unsigned int *dst_ptr = image.addr + image.sl * (y_len - y -1);
-                dst_ptr[x] = tmp_color;
-            }else{
-                unsigned int *dst_ptr = image.addr + image.sl * (y);
-                dst_ptr[x] = tmp_color;
-            }
-
-            i += 2;
-        }
-    }
-     
-	mlx_put_image_to_window(mfa->mlx, mfa->window, \
-								image.img, win_x, win_y);
-}
-
-int drawThumbnail(char *path, t_mfa *mfa)
-{
-    int fd = open(path, O_RDONLY);
-    if(fd < 0){
-        fprintf(stderr, "Error: open file%s\n", path);
-        exit(1);
-    }
-
-    if(check_first_id(fd) == false){
-        fprintf(stderr, "Error: Not MFA file %s\n", path);
-        exit(1);
-    }
-    
-
-    // must free id1
-    char *id1 = get_header(fd, 4);
-    printf("id1=[%s]\n", id1);
-
-    // must free id2
-    char *id2 = get_header(fd, 4);
-    printf("id2=[%s]\n", id2);
-    char *read_path = get_header(fd, 4);
-    printf("path=[%s]\n", read_path);
-    char *info = get_header(fd, 1);
-    printf("path=[%s]\n", info);
-
-
-    if(!id1 || !id2 | !path){
-        fprintf(stderr, "Error:read ID\n");
-        exit(1);
-    }
-    t_mfa_img img_info;
-    analyze_header_image(info, &img_info);
-
-    bool tmp_result;
-    //　なぜか3バイトのデータがあるので読み込み
-    read3Byte(fd, &tmp_result);
-
-    //must free img;
-    unsigned char *img = get_image(fd, &img_info);
-    (void)img;
-    mapping(img, mfa, img_info.width, img_info.height, 0 ,0,  img_info.reverse, &img_info);
-    // todo
-    free(img);
-    //return img;
-    return fd;
-
-}
-
-void drawIcon(int fd, t_mfa *mfa)
-{
-    t_mfa_img img_info;
-    img_info.width= 48;
-    img_info.height= 96;
-    img_info.size = img_info.width * img_info.height;
-    img_info.reverse = false;
-    img_info.rgb = 24;
-
-
-    char tmp_read[1200];
-    read(fd, tmp_read, 530*2 + 38);
-    unsigned char *raw_img = get_image(fd, &img_info);
-    mapping(raw_img, mfa, 48,   48, 80 ,0, false, &img_info);
-
-}
-
-void drawIconInGreen(int fd, t_mfa *mfa)
-{
-    t_mfa_img img_info;
-    img_info.width= 300;
-    img_info.height= 300;
-    img_info.size = img_info.width * img_info.height;
-    img_info.reverse = false;
-    img_info.rgb = 24;
-
-
-    char tmp_read[1200];
-    read(fd, tmp_read,  0);
-    unsigned char *raw_img = get_image(fd, &img_info);
-    mapping(raw_img, mfa, 16,   280, 80 ,0, false, &img_info);
-    mapping(raw_img, mfa, 32,   280, 100 ,0, false, &img_info);
-    mapping(raw_img, mfa, 48,   280, 200 ,0, false, &img_info);
-    mapping(raw_img, mfa, 112,   280, 400 ,0, false, &img_info);
-    mapping(raw_img, mfa, 240,   280, 540 ,0, false, &img_info);
-
-}
 
 void test1(int *fds)
 {
@@ -419,10 +170,11 @@ int	main(int argc, char **argv)
     char *path9 = "./MFA/white5.mfa";
     */
     //char *path3 = "./MFA/gray.mfa";
-    char *path4 = "./MFA/green.mfa";
+    char *path2 = "./MFA/white1.mfa";
+    //char *path4 = "./MFA/green.mfa";
     char *path9 = "./MFA/white5.mfa";
     //char *path7 = "./MFA/green.mfa";
-    char *path = path4;
+    char *path = path2;
     //char *path = path9;
 
 
@@ -506,8 +258,18 @@ int	main(int argc, char **argv)
     */
 
     int fd = drawThumbnail(path,&mfa);
-    drawIcon(fd, &mfa);
-    //drawIconInGreen(fd, &mfa);
+
+    unsigned char tmp_read[1200];
+    // 37はヘッダーバイト数
+    // 530は実測値
+    read(fd, tmp_read, 530*2 + 38);
+    if(tmp_read[1060] != 0xC7){
+        drawIcon(fd, &mfa);
+        drawLightBall(fd, &mfa);
+        drawIcon2(fd, &mfa);
+        drawLightBall2(fd, &mfa);
+    }
+    drawSomething(fd, &mfa);
 
     /*
     t_mfa_img img_info;
@@ -537,7 +299,7 @@ int	main(int argc, char **argv)
 
     int fd9 = open(path9 , O_RDONLY);
 
-    int tmp_size = 134210+6+100;
+    int tmp_size = 134210+6+100 + 616;
     char tmp[tmp_size];
     read(fd9, tmp, tmp_size);
 
@@ -649,7 +411,6 @@ int	main(int argc, char **argv)
     mapping(raw_img, &mfa, 128,  256, 500 ,100, false, &img_info);
     */
     mapping(raw_img, &mfa, 1,  2, 500 ,100, false, &img_info);
-
     mapping3(raw_img2, &mfa, 39,  260, 300 ,0, false, &img_info);
 
     //mapping(raw_img, &mfa, 128,  256, 300 ,0);
