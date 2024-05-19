@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #define BUFFER_SIZE (1<<26)
+#define MAX_IMAGE (100)
 
 typedef struct {
 	int	x;
@@ -105,6 +106,8 @@ void	display_header(t_stream *str)
 	size_t		i = 0;
 
 	memcpy(h.MMF2, &data[i], sizeof(h.MMF2)); i+=sizeof(h.MMF2);
+	if (0 != memcmp(h.MMF2, "MMF2", 4))
+		return (void)fprintf(stderr, "invalid file header: [%.*s]\n", (int)sizeof(h.MMF2), h.MMF2);
 	printf("%s\t", h.MMF2);
 
 	memcpy(h.n0, &data[i], sizeof(h.n0)); i+=sizeof(h.n0);
@@ -122,13 +125,13 @@ void	display_header(t_stream *str)
 	memcpy(&h.n3, &data[i], sizeof(uint32_t)); i+=sizeof(uint32_t);
 	h.s3 = (char*)&data[i]; i+=h.n3;
 	printf("s3:[%.*s]\n", h.n3, h.s3);
+	str->i = i;
 
 	memcpy(h.n4, &data[i], sizeof(h.n4)); i+=sizeof(h.n4);
 	for (size_t i=0; i<sizeof(h.n4)/sizeof(*h.n4); i++) printf("%08x ", h.n4[i]);
 	printf("\n\n");
-	str->i = i;
 
-	for (size_t j=0; j<256; ++j) {
+	for (size_t j=0; j<64; ++j) {
 		uint32_t	px;
 		memcpy(&px, &data[i], sizeof(uint32_t)); i+=sizeof(uint32_t);
 		printf("%c%08x", " \n"[j%8==0], px);
@@ -140,21 +143,39 @@ int	seek_image(t_stream *str, t_point *size)
 {
 	for (;;)
 	{
-		if (!memcmp(&str->ptr[str->i], (uint8_t[]){0x6, 0x10, 0, 0}, 4))
+		if (!memcmp(&str->ptr[str->i], (uint8_t[]){0x01, 0, 0x10, 0, 0x03, 0, 0, 0}, 8))
+		{
+			int	x = str_at(str, -8);
+			int	y = str_at(str, -4);
+			*size = (t_point){x, y};
+			printf("%zd: found %d * %d thumbnail %d bit \n", str->i, size->x, size->y, 5);
+			str->i += 36;
+			return 5;
+		}
+		if (!memcmp(&str->ptr[str->i], (uint8_t[]){0x07, 0x10, 0, 0}, 4))
 		{
 			int	x = str_at(str, -4);
 			int	y = str_at(str, -2);
 			*size = (t_point){x, y};
-			printf("found %d * %d img %d bit \n", size->x, size->y, 5);
+			printf("%zd: found %d * %d logo %d bit \n", str->i, size->x, size->y, 5);
 			str->i += 16;
 			return 5;
 		}
-		if (!memcmp(&str->ptr[str->i], (uint8_t[]){0x4, 0x10, 0, 0}, 4))
+		if (!memcmp(&str->ptr[str->i], (uint8_t[]){0x06, 0x10, 0, 0}, 4))
+		{
+			int	x = str_at(str, -4);
+			int	y = str_at(str, -2);
+			*size = (t_point){x, y};
+			printf("%zd: found %d * %d img %d bit \n", str->i, size->x, size->y, 5);
+			str->i += 16;
+			return 5;
+		}
+		if (!memcmp(&str->ptr[str->i], (uint8_t[]){0x04, 0x10, 0, 0}, 4))
 		{
 			int	x = str_at(str, -4);
 			int	y = str_at(str, -2);
 			*size = (t_point){x+(x&1), y}; // for some reason add 1 if odd
-			printf("found %d * %d img %d bit \n", size->x, size->y, 8);
+			printf("%zd: found %d * %d img %d bit \n", str->i, size->x, size->y, 8);
 			str->i += 16;
 			return 8;
 		}
@@ -166,7 +187,7 @@ int	seek_image(t_stream *str, t_point *size)
 	}
 }
 
-t_stream	str = {};
+static t_stream	str = {};
 
 int	draw(t_image *img)
 {
@@ -199,36 +220,41 @@ int	draw(t_image *img)
 	return (0);
 }
 
-#define MAX_IMAGE (100)
-
 int	main(int ac, char *arg[])
 {
-	if (ac != 2)
-		return fprintf(stderr, "usage: %s file\n", arg[0]), 0;
-	FILE *fp = or_exit(fopen(arg[1], "r"), "failed to open file");
-	str.len = fread(str.ptr, 1, BUFFER_SIZE, fp);
-	fclose(fp);
-	display_header(&str);
-
-	void	*mlx = or_exit(mlx_init(), "mlx_init");
-	static t_image	images[MAX_IMAGE] = {};
-	for (size_t i=0; i < MAX_IMAGE; i++)
 	{
-		t_image	*img = &images[i];
-		img->mlx = mlx;
-		img->index = i;
-		img->n_bit = seek_image(&str, &img->size);
-		if (img->n_bit <= 0)
-			break;
-		char	n_str[20];
-		img->win = or_exit(mlx_new_window(img->mlx, img->size.x, img->size.y, (snprintf(n_str, sizeof(n_str),  "%zu", i), n_str)), "mlx_new_window");
-		img->img = or_exit(mlx_new_image(img->mlx, img->size.x, img->size.y), "mlx_new_image");
-		img->addr = (uint8_t*)mlx_get_data_addr(img->img, &img->bits_px, &img->size_line, &img->endian);
-		mlx_hook(img->win, DestroyNotify, StructureNotifyMask, &destroy_handler, img);
-		mlx_key_hook(img->win, &key_handler, img);
-		draw(img);
+		if (ac != 2)
+			return fprintf(stderr, "usage: %s MFA_file\n", arg[0]), 0;
+		char	*ext = strrchr(arg[1], '.');
+		if (!ext || 0 != strcmp(ext, ".mfa"))
+			return fprintf(stderr, "error: %s: not a .mfa file\n", arg[1]), 1;
+		FILE *fp = or_exit(fopen(arg[1], "r"), "failed to open file");
+		str.len = fread(str.ptr, 1, BUFFER_SIZE, fp);
+		fclose(fp);
+		display_header(&str);
 	}
-	mlx_loop(mlx);
+
+	{
+		void	*mlx = or_exit(mlx_init(), "mlx_init");
+		static t_image	images[MAX_IMAGE] = {};
+		for (size_t i=0; i < MAX_IMAGE; i++)
+		{
+			t_image	*img = &images[i];
+			img->mlx = mlx;
+			img->index = i;
+			img->n_bit = seek_image(&str, &img->size);
+			if (img->n_bit <= 0)
+				break;
+			char	n_str[20];
+			img->win = or_exit(mlx_new_window(img->mlx, img->size.x, img->size.y, (snprintf(n_str, sizeof(n_str),  "%zu", i), n_str)), "mlx_new_window");
+			img->img = or_exit(mlx_new_image(img->mlx, img->size.x, img->size.y), "mlx_new_image");
+			img->addr = (uint8_t*)mlx_get_data_addr(img->img, &img->bits_px, &img->size_line, &img->endian);
+			mlx_hook(img->win, DestroyNotify, StructureNotifyMask, &destroy_handler, img);
+			mlx_key_hook(img->win, &key_handler, img);
+			draw(img);
+		}
+		mlx_loop(mlx);
+	}
 }
 
 	__attribute__((destructor))
