@@ -35,7 +35,6 @@ void test1(int *fds)
     int diff_cnt = 0;
     //bool flag = false;
     while(1){
-        //printf("No.1 cnt=%d\n", cnt);
         unsigned int tmp[10];
         bool result;
         for(int i=0;i<9;i++){
@@ -172,7 +171,7 @@ int	main(int argc, char **argv)
     //char *path3 = "./MFA/gray.mfa";
     char *path2 = "./MFA/white1.mfa";
     //char *path4 = "./MFA/green.mfa";
-    char *path9 = "./MFA/white5.mfa";
+    //char *path9 = "./MFA/white5.mfa";
     //char *path7 = "./MFA/green.mfa";
     char *path = path2;
     //char *path = path9;
@@ -259,7 +258,7 @@ int	main(int argc, char **argv)
 
     int fd = drawThumbnail(path,&mfa);
 
-    unsigned char tmp_read[1200];
+    unsigned char tmp_read[12000];
     // 37はヘッダーバイト数
     // 530は実測値
     read(fd, tmp_read, 530*2 + 38);
@@ -269,7 +268,37 @@ int	main(int argc, char **argv)
         drawIcon2(fd, &mfa);
         drawLightBall2(fd, &mfa);
     }
-    drawSomething(fd, &mfa);
+    //offset
+    //unsigned char tmp_read[10000];
+    read(fd, tmp_read, 9000);
+    read(fd, tmp_read, 9000);
+    read(fd, tmp_read, 9000);
+    read(fd, tmp_read, 9000);
+    read(fd, tmp_read, 9000); //45000+7967=52967=0xCEE7
+    read(fd, tmp_read, 7939);
+
+    int x = 300;
+    int y=0;
+    unsigned int y_max = 0;
+    int cnt = 0;
+    while(1){
+        cnt++;
+        if(cnt > 30){
+            break;
+        }
+        t_mfa_img img_info;
+        drawSomething(fd, &mfa, x, y, &img_info);
+        x += img_info.width + 20;
+        if(y_max < img_info.height){
+            y_max = img_info.height;
+        }
+        if(mfa.width < x + 200){
+            x = 0;
+            y += y_max;
+            y_max = 0;
+        }
+    }
+    //drawSomething(fd, &mfa, 200, 300);
 
     /*
     t_mfa_img img_info;
@@ -294,6 +323,7 @@ int	main(int argc, char **argv)
     img_info.reverse = false;
     img_info.rgb = 24;
 
+    /*
     unsigned char *raw_img = get_image(fd, &img_info);
 
 
@@ -309,6 +339,7 @@ int	main(int argc, char **argv)
     img_info.reverse = false;
     img_info.rgb = 24;
     unsigned char *raw_img2 = get_image(fd9, &img_info);
+    */
 
     //raw_img = get_image(fds[8], &img_info);
     //raw_img = get_image(fds[8], &img_info);
@@ -410,8 +441,8 @@ int	main(int argc, char **argv)
     mapping(raw_img, &mfa, 96,   256, 400 ,100, false, &img_info);
     mapping(raw_img, &mfa, 128,  256, 500 ,100, false, &img_info);
     */
-    mapping(raw_img, &mfa, 1,  2, 500 ,100, false, &img_info);
-    mapping3(raw_img2, &mfa, 39,  260, 300 ,0, false, &img_info);
+    //mapping(raw_img, &mfa, 1,  2, 500 ,100, false, &img_info);
+    //mapping3(raw_img2, &mfa, 39,  260, 300 ,0, false, &img_info);
 
     //mapping(raw_img, &mfa, 128,  256, 300 ,0);
     //mapping(raw_img, &mfa, 128, 256, 200 ,0);
