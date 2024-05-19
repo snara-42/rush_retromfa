@@ -30,8 +30,8 @@ typedef struct {
 }	t_image;
 
 typedef struct {
-	ssize_t	i;
-	ssize_t	len;
+	size_t	i;
+	size_t	len;
 	uint8_t	ptr[BUFFER_SIZE];
 }	t_stream;
 
@@ -100,7 +100,7 @@ typedef struct {
 
 void	display_header(t_stream *str)
 {
-	const void *data = str->ptr;
+	const uint8_t *data = str->ptr;
 	t_header	h = {};
 	size_t		i = 0;
 
