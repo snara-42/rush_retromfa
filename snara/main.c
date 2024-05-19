@@ -7,7 +7,6 @@
 #include <X11/X.h>
 #include <X11/keysym.h>
 #include <string.h>
-#include <sys/_types/_ssize_t.h>
 #include <unistd.h>
 
 #define BUFFER_SIZE (1<<26)
@@ -143,12 +142,14 @@ void	display_header(t_stream *str)
 
 int	seek_image(t_stream *str, t_point *size)
 {
-	for (;;)
+	for (;ft_getc(str) != EOF;)
 	{
 		if (!memcmp(&str->ptr[str->i], (uint8_t[]){0x01, 0, 0x10, 0, 0x03, 0, 0, 0}, 8))
 		{
 			int	x = str_at(str, -8);
 			int	y = str_at(str, -4);
+			if (x <= 0 || y <= 0)
+				continue;
 			*size = (t_point){x, y};
 			printf("%zd: found %d * %d thumbnail %d bit \n", str->i, size->x, size->y, 5);
 			str->i += 36;
@@ -158,6 +159,8 @@ int	seek_image(t_stream *str, t_point *size)
 		{
 			int	x = str_at(str, -4);
 			int	y = str_at(str, -2);
+			if (x <= 0 || y <= 0)
+				continue;
 			*size = (t_point){x, y};
 			printf("%zd: found %d * %d logo %d bit \n", str->i, size->x, size->y, 5);
 			str->i += 16;
@@ -167,6 +170,8 @@ int	seek_image(t_stream *str, t_point *size)
 		{
 			int	x = str_at(str, -4);
 			int	y = str_at(str, -2);
+			if (x <= 0 || y <= 0)
+				continue;
 			*size = (t_point){x, y};
 			printf("%zd: found %d * %d img %d bit \n", str->i, size->x, size->y, 5);
 			str->i += 16;
@@ -176,17 +181,16 @@ int	seek_image(t_stream *str, t_point *size)
 		{
 			int	x = str_at(str, -4);
 			int	y = str_at(str, -2);
+			if (x <= 0 || y <= 0)
+				continue;
 			*size = (t_point){x+(x&1), y}; // for some reason add 1 if odd
 			printf("%zd: found %d * %d img %d bit \n", str->i, size->x, size->y, 8);
 			str->i += 16;
 			return 8;
 		}
-		if (ft_getc(str) == EOF)
-		{
-			printf("not found\n");
-			return 0;
-		}
 	}
+	fprintf(stderr, "not found\n");
+	return 0;
 }
 
 static t_stream	str = {};
