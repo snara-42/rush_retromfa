@@ -1,6 +1,7 @@
 NAME = retromfa
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -MMD -MP -I$(MLXPATH) -I/usr/X11/include 
+CFLAGS = -Wall -Wextra -Werror -MMD -MP $(INCFLAGS)
+INCFLAGS = -I$(MLXPATH) -I/usr/X11/include 
 SRCS = main.c
 OBJS = $(SRCS:.c=.o)
 
@@ -10,8 +11,8 @@ MLXPATH = ./minilibx_opengl
 LDFLAGS = $(MLXPATH)/*.o -framework OpenGL -framework AppKit -lz
 else
 MLXPATH = ./minilibx-linux
-#LDFLAGS = -L$(MLXPATH) -lmlx -L/usr/X11/lib -lX11 -lXext -lm -lbsd
-LDFLAGS = $(MLXPATH)/*.o -L/usr/X11/lib -lX11 -lXext -lm -lbsd
+LDFLAGS = -L$(MLXPATH) -lmlx -L/usr/X11/lib -lX11 -lXext -lm -lbsd
+#LDFLAGS = $(MLXPATH)/*.o    -L/usr/X11/lib -lX11 -lXext -lm -lbsd
 endif
 
 
@@ -30,7 +31,7 @@ fclean: clean
 re: fclean all
 
 debug: re
-debug: CFLAGS = -Wall -Wextra -MMD -MP -g -fsanitize=address,undefined -I$(MLXPATH) -I/usr/X11/include 
+debug: CFLAGS = -Wall -Wextra -Wconversion -MMD -MP -g -fsanitize=address,undefined $(INCFLAGS)
 d: debug
 
 run: debug
