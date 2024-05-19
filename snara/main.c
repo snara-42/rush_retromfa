@@ -7,6 +7,7 @@
 #include <X11/X.h>
 #include <X11/keysym.h>
 #include <string.h>
+#include <sys/_types/_ssize_t.h>
 #include <unistd.h>
 
 #define BUFFER_SIZE (1<<26)
@@ -54,9 +55,10 @@ int	ft_ungetc(t_stream *str)
 }
 int	str_at(t_stream *str, ssize_t offset)
 {
-	if (0 <= str->i + offset && str->i + offset < str->len)
+	ssize_t	i = (ssize_t)str->i + offset;
+	if (0 <= i && (size_t)i < str->len)
 	{
-		return str->ptr[str->i + offset];
+		return str->ptr[i];
 	}
 	return EOF;
 }
