@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "utility.h"
 #include "header.h"
+
 bool check_first_id(int fd)
 {
     char *mfa_init="4D4D46320400000003000000F8000000";
@@ -117,43 +118,32 @@ void analyze_header_image(unsigned char *byte_info, t_mfa_img *img_info)
     printf("data14=%d, 0x%x\n\n", data14, data14);
     printf("data15=%d, 0x%x\n\n", data15, data15);
 
-    //return (t_mfa_img);
 }
 
 void analyze_header_image2(unsigned char *byte_info, t_mfa_img *img_info)
 {
-    (void)img_info;
-    //t_mfa_img img_info;
     
     int i=0;
-    unsigned int data1 = strToUInt3Byte(&(byte_info[i]));
-    i+=3;
-    unsigned int data2 = strToUInt4Byte(&(byte_info[i]));
+    unsigned int data1 = strToUInt4Byte(&(byte_info[i]));
     i+=4;
-    unsigned int data3 = strToUInt4Byte(&(byte_info[i]));
-    i+=4;
-    unsigned int data4 = strToUInt2Byte(&(byte_info[i]));
+    unsigned int data2 = strToUInt2Byte(&(byte_info[i]));
     i+=2;
-    unsigned int data5 = strToUInt2Byte(&(byte_info[i]));
+    unsigned int data3 = strToUInt2Byte(&(byte_info[i]));
     i+=2;
-    unsigned int data6 = strToUInt1Byte(&(byte_info[i]));
+    unsigned int data4 = strToUInt1Byte(&(byte_info[i]));
     i+=1;
-    unsigned int data7 = strToUInt2Byte(&(byte_info[i]));
+    unsigned int data5 = strToUInt1Byte(&(byte_info[i]));
+    i+=1;
+    unsigned int data6 = strToUInt2Byte(&(byte_info[i]));
     i+=2;
-    //unsigned int data8 = strToUInt1Byte(&(byte_info[i]));
-    //i+=1;
 
-    //unsigned int data9 = strToUInt4Byte(&(byte_info[i]));
-    //i+=4;
-    //unsigned int data10 = strToUInt4Byte(&(byte_info[i]));
-    //i+=4;
 
-    img_info->size = data3;
-
-    img_info->width= data4;
-    img_info->height= data5;
+    img_info->size = data1;
+    img_info->width= data2;
+    img_info->height= data3;
     img_info->reverse = false;
-    img_info->rgb = data7;
+    img_info->rgb = data4;
+    img_info->offset = data5;
 
     printf("data1=%d, 0x%x\n", data1, data1);
     printf("data2=%d, 0x%x\n\n", data2, data2);
@@ -161,10 +151,4 @@ void analyze_header_image2(unsigned char *byte_info, t_mfa_img *img_info)
     printf("data4=%d, 0x%x\n\n", data4, data4);
     printf("data5=%d, 0x%x\n\n", data5, data5);
     printf("data6=%d, 0x%x\n\n", data6, data6);
-    printf("data7=%d, 0x%x\n\n", data7, data7);
-    //printf("data8=%d, 0x%x\n\n", data8, data8);
-    //printf("data9=%d, 0x%x\n\n", data9, data9);
-    //printf("data10=%d, 0x%x\n\n", data10, data10);
-
-    //return (t_mfa_img);
 }

@@ -1,6 +1,7 @@
 #ifndef RETRO_MFA_H
 #define RETRO_MFA_H
 #include <stdbool.h>
+#include <unistd.h>
 
 typedef struct s_image
 {
@@ -25,11 +26,12 @@ typedef struct s_mfa
 
 typedef struct s_mfa_img
 {
-    unsigned int size;
+    size_t size;
     unsigned int rgb;
     unsigned int width;
     unsigned int height;
     bool        reverse;
+    size_t offset;
 }	t_mfa_img;
 
 

@@ -1,6 +1,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <stdio.h>
+//#include "utility.h"
+#include <string.h>
+
 
 
 unsigned int strToUInt4Byte(unsigned char *data)
@@ -72,16 +76,35 @@ unsigned int read1Byte(int fd, bool *result)
 int cvt_hex_str_to_int_array(char *src, unsigned char *dst)
 {
     int i=0;
-    //unsigned char init_b[1000] = {0};
     while(src[i]){
         char tmp[2];
         tmp[0] = src[i];
         tmp[1] = src[i+1];
         char *end;
         unsigned char decimal = strtol(tmp, &end, 16);
-        //printf("decimal[%d]=%u\n", i/2, decimal);
         dst[i/2] = decimal;
         i = i+2;
     }
     return (i/2);
+}
+
+
+size_t jumpImageAddress(unsigned char *img, size_t max_size)
+{
+    printf("jumpImageAddress\n");
+    char *code = "00FFFBF000A0A0A40080808000FF00000000FF0000FFFF00000000FF00FF00FF0000FFFF00FFFFFF00";
+    int size=41;
+    //unsigned char read_byte[size];
+    unsigned char header_byte[size];
+    cvt_hex_str_to_int_array(code, header_byte);
+
+    size_t i=0x2000;
+    while(i < max_size){
+        if(memcmp(&(img[i]), header_byte, size) == 0){
+            return (i+size);
+            //break;
+        }
+        i++;
+    }
+    return 0;
 }

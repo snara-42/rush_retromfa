@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+       #include <stdlib.h>
 
 #include "mlx.h"
 #include "mlx_int.h"
@@ -14,18 +15,6 @@ void mapping(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x
 {
     (void)img_info;
 
-    int size = img_info->size;
-    printf("size=%d\n", img_info->size);
-    printf("raw_img[0]=%x\n", raw_img[0]);
-    printf("raw_img[1]=%x\n", raw_img[1]);
-    printf("raw_img[2]=%x\n", raw_img[2]);
-    printf("raw_img[3]=%x\n", raw_img[3]);
-
-    //int size = mfa.height;
-    printf("raw_img[-4]=%x\n", raw_img[size-4]);
-    printf("raw_img[-3]=%x\n", raw_img[size-3]);
-    printf("raw_img[-2]=%x\n", raw_img[size-2]);
-    printf("raw_img[-1]=%x\n", raw_img[size-1]);
     t_image image = {0};
 	image.img = (void *)mlx_new_image(mfa->mlx, x_len, y_len);
 	image.addr = mlx_get_data_addr(image.img, \
@@ -34,9 +23,9 @@ void mapping(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x
     int i = 0;
     for(int y=0;y<y_len;y++){
         for(int x=0;x<x_len;x++){
-            unsigned char R = (raw_img[i+1] & 0xF8) ;
-            unsigned char G = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
-            unsigned char B = (raw_img[i] & 0x1F) << 3;
+            unsigned char R = (raw_img[i+1] & 0xF8) ; //11111000
+            unsigned char G = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5); //111111
+            unsigned char B = (raw_img[i] & 0x1F) << 3; // 1111 
 
             if(raw_img[i] == 0xFF && raw_img[i+1] == 0xFF){
                 R = 0xf3;
@@ -44,11 +33,6 @@ void mapping(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_x
                 B = 0xf3;
             }
 
-            //if(y % 16 <= 2){
-                //R = 255;
-                //G = 0;
-                //B = 0;
-            //}
             unsigned int tmp_color = (R << 16) + (G << 8) + B;
 
             if(reverse){
@@ -98,7 +82,6 @@ void mapping3(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_
 {
     (void)img_info;
 
-    //int size = img_info->size;
     t_image image = {0};
 	image.img = (void *)mlx_new_image(mfa->mlx, x_len, y_len);
 	image.addr = mlx_get_data_addr(image.img, \
@@ -107,33 +90,10 @@ void mapping3(unsigned char *raw_img, t_mfa *mfa, int x_len, int y_len, int win_
     int i = 0;
     for(int y=0;y<y_len;y++){
         for(int x=0;x<x_len;x++){
-            //unsigned char R = (raw_img[i+1] & 0xF8);
-            //unsigned char G = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
-            //unsigned char B = (raw_img[i] & 0x1F) << 3;
 
-            /*
-            unsigned char R = (raw_img[i+1] & 0x78)  << 1;
-            unsigned char B = ((raw_img[i+1] & 0x03) << 6) + ((raw_img[i] & 0xE0) >> 5);
-            unsigned char G = (raw_img[i] & 0x1F) << 3;
-            */
-            unsigned char R = (raw_img[i+1] & 0x7C)  << 1;
-            unsigned char B = ((raw_img[i+1] & 0x03) << 6) + ((raw_img[i] & 0xE0) >> 5);
-            unsigned char G = (raw_img[i] & 0x1F) << 3;
-            if(i <= 6){
-                printf("R=%u, G=%u, B=%u\n", R, G, B);
-            }
-
-
-            /*
-            unsigned char G = (raw_img[i+1] & 0xF8);
-            unsigned char B = ((raw_img[i+1] & 0x07) << 5) + ((raw_img[i] & 0xE0) >> 5);
-            unsigned char R = (raw_img[i] & 0x1F) << 3;
-            */
-            //if(y % 16 <= 2){
-                //R = 255;
-                //G = 0;
-                //B = 0;
-            //}
+            unsigned char R = (raw_img[i+1] & 0x78)  <<1;
+            unsigned char G = ((((raw_img[i+1] & 0x3) << 6)) + ((raw_img[i] & 0xE0) >> 2));
+            unsigned char B = (raw_img[i] & 0x1F) << 3;
             unsigned int tmp_color = (R << 16) + (G << 8) + B;
 
             if(reverse){
@@ -279,7 +239,7 @@ void drawIcon(int fd, t_mfa *mfa)
     img_info.rgb = 24;
 
     unsigned char *raw_img = get_image(fd, &img_info);
-    mapping(raw_img, mfa, 48,   48, 80 ,0, false, &img_info);
+    mapping(raw_img, mfa, 48, 48, 80 ,0, false, &img_info);
 
 }
 
@@ -335,85 +295,51 @@ void drawLightBall2(int fd, t_mfa *mfa)
 }
 
 
-void drawIconInGreen(int fd, t_mfa *mfa)
+
+
+size_t drawSomething(unsigned char *img, size_t img_index, t_mfa *mfa, int offset_x, int offset_y, t_mfa_img *img_info)
 {
-    t_mfa_img img_info;
-    img_info.width= 300;
-    img_info.height= 300;
-    img_info.size = img_info.width * img_info.height;
-    img_info.reverse = false;
-    img_info.rgb = 24;
+    unsigned char tmp_read[64];
+    int info_size = 24;
+    memcpy(tmp_read, &(img[img_index]), info_size);
+    img_index += info_size;
+    int return_offset = 12;
 
 
-    unsigned char tmp_read[1200];
-    read(fd, tmp_read, 530*2 );
-    printf("tmp_read=%x\n", tmp_read[1160]);
-    printf("tmp_read=%x\n", tmp_read[1161]);
-    printf("tmp_read=%x\n", tmp_read[1162]);
-    printf("tmp_read=%x\n", tmp_read[1163]);
-    printf("tmp_read=%x\n", tmp_read[1164]);
-    printf("tmp_read=%x\n", tmp_read[1165]);
-    printf("tmp_read=%x\n", tmp_read[1166]);
-    printf("tmp_read=%x\n", tmp_read[1167]);
-    //read(fd, tmp_read,  size);
-    unsigned char *raw_img = get_image(fd, &img_info);
-    mapping(raw_img, mfa, 100,   480, 180 ,0, false, &img_info);
-    mapping(raw_img, mfa, 200,   480, 300 ,0, false, &img_info);
-
-}
-
-bool drawSomething(int fd, t_mfa *mfa, int offset_x, int offset_y, t_mfa_img *img_info)
-{
-    //t_mfa_img img_info;
-
-    /*
-    unsigned char tmp_read[10000];
-    read(fd, tmp_read, 9000);
-    read(fd, tmp_read, 9000);
-    read(fd, tmp_read, 9000);
-    read(fd, tmp_read, 9000);
-    read(fd, tmp_read, 9000); //45000+7967=52967=0xCEE7
-    read(fd, tmp_read, 7950);
-    */
-
-
-
-    unsigned char tmp_read[40];
-    read(fd, tmp_read, 28);
     analyze_header_image2(tmp_read, img_info );
-    if(img_info->width > 1000 || img_info->height > 1000 || img_info->width == 0 || img_info->height == 0 || img_info->size == 0){
-        return false;
+
+
+    if(img_info->size == 0){
+        return img_index + 1;
     }
-    if(img_info->width * img_info->width  > img_info->size){
-        return false;
+
+    if(img_info->width > 2000 || img_info->height > 2000 || img_info->width == 0 || img_info->height == 0 || img_info->size == 0){
+        return img_index + img_info->size + return_offset;
     }
-    //for(int i=0;i<28;i++){
-        //printf("raw_img[%d]=%x\n", i, tmp_read[i]);
-    //}
-    //img_info.width= 800;
-    //img_info.height= 800;
-    //img_info.size = img_info.width * img_info.height;
-    //img_info.reverse = false;
-    //img_info.rgb = 24;
-    printf("x=%u\n", img_info->width);
-    printf("y=%u\n", img_info->height);
+    if(img_info->width * img_info->height  > img_info->size){
+        return img_index + img_info->size + return_offset;
+    }
 
-    /*
-    img_info.width= 75;
-    img_info.height= 400;
-    img_info.size = img_info.width * img_info.height;
-    img_info.reverse = false;
-    img_info.rgb = 24;
-    */
+    if(offset_y + img_info->height >= (unsigned int)mfa->height){
+        return img_index + img_info->size + return_offset;
+    }
 
 
-    unsigned char *raw_img = get_image(fd, img_info);
+    unsigned char *raw_img = malloc(img_info->size);
+    if(raw_img){
+        int offset = 0;
+        memcpy(raw_img, &(img[img_index+offset]), img_info->size);
+        if(img_info->rgb == 0x06){
+            mapping3(raw_img, mfa, img_info->width, img_info->height,   offset_x,offset_y, false, img_info);
+        }else{
+            int image_offset = 0;
+            if(img_info->width % 2 == 1){
+                image_offset = 1;
+            }
+            mapping2(raw_img, mfa, img_info->width+image_offset, img_info->height,   offset_x,offset_y, false, img_info);
+        }
+        free(raw_img);
+    }
 
-    //mapping2(raw_img, mfa, 76, 100,   offset_x,offset_y, false, &img_info);
-    mapping2(raw_img, mfa, img_info->width+1, img_info->height,   offset_x,offset_y, false, img_info);
-
-    //調整
-    read(fd, tmp_read, 8);
-
-    return true;
+    return img_index + img_info->size + return_offset;
 }
